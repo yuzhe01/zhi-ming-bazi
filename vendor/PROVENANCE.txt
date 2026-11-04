@@ -1,0 +1,7 @@
+lunar-javascript
+Upstream: https://github.com/6tail/lunar-javascript
+Commit: 4c45a59f79b856125516f31aefa8295035c16afd
+Downloaded: 2026-11-02
+License: MIT (see lunar.LICENSE)
+lunar.js SHA256: 9750324bfe1aa63c146f8c72b1143df924466c11c8a5277d7d9225c541a18aaa
+No third-party Skill code has been incorporated. Research links are in the website method section and research/sources.md.
