@@ -103,7 +103,7 @@
       }
     };
     const detail=typeof module==='object'&&module.exports?require('./analysis.js'):root.ZhiMingAnalysis;
-    return detail.enrich(chart,{shiShen,ELEM,ELEMENTS,Solar},options);
+    return detail.enrich(chart,{shiShen,ELEM,ELEMENTS,Solar,HIDDEN},options);
   }
   const api={calculate,shiShen,ELEM,ELEMENTS};
   if(typeof module==='object'&&module.exports) module.exports=api; else root.ZhiMing=api;

@@ -77,6 +77,21 @@
     const practiceBlocks=[b('第1周：把盘面信息换成现实问题',`本命月令线索为${c.monthGod}；${supportLabel}。`,`从事业或关系模块选一项你最近确实遇到的问题。只记录具体场景、参与人、发生频率与已有证据，不先把经历套入“命好命差”。`,'写下一个问题和一个可以观察的改善指标。'),b('第2周：做一项可完成的试验',`优先任务：${GODS[c.monthGod].task}`,`把任务压到一周可完成的范围；约定谁给反馈、什么算完成。如果真实反馈与报告取象不同，以真实反馈为准，记录差异，不事后把任何结果都解释成命盘已说中。`),b('第3周：检视边界与资源',`原局同伴类、经营类、秩序类符号的位置已列在事业与资源章节。`,'检查是否有职责不清、承诺过多、反复返工或需要表达但一直未说的需求。为一个问题提出具体调整，而不是一次重做全部生活。'),b('第4周：保留有效的，舍弃不适用的','复盘表：原问题／采取的行动／真实变化／下一步。','用记录判断这份报告有没有实际帮助。有效的建议留下，不适用的描述可以舍弃。后续切换流年时，核对的是新增的干支关系与自己的计划，不把年份标签当作必须发生的事件。')];
     c.readings={overview:section('命盘结构：从四柱一步步读到结论',`先看日主${d}${c.dayElement}，再看${month.zhi}月、${roots.length}处根气与透干关系。下面的每一步都给出实际干支位置。`,overview),career:section('事业：工作方式、优势阻力与验证路线','按月令与实际出现的十神逐项解释，落实到工作任务与一个月的验证方法。',workBlocks,'ditian'),wealth:section('财与资源：收入方式的传统取象','把财星、输出与合作分开读，重点是理解资源如何组织，而不是预测金额。',wealthBlocks,'ditian'),love:section('姻缘关系：需求、沟通与位置关系','先解释日支，再看涉及日支的合冲关系，分别给出单身与已有伴侣时的具体行动。',loveBlocks,'ditian'),health:section('健康生活：季节意象与日常照顾','传统意象用于文化理解，生活安排依据真实状态。',healthBlocks,'method'),years:section('大运流年：逐年看新增了什么',`分析参考时点 ${forecast.referenceDate}。每个年份说明立春边界、大运及其与原局的关系。`,yearsBlocks,'ditian'),practice:section('行动路线：四周完成一次现实验证','把报告中可用的内容变成能执行、能回顾的行动。',practiceBlocks,'method'),glossary:section('白话词典：术语究竟是什么意思','看到术语时，可以回到这页查看定义、计算口径与适用范围。',GLOSSARY.map(([title,text])=>b(title,'结合本命四柱查看具体位置。',text)),'method')};
     c.detail={version:'2.0.0',roles,roots,monthRelation,supportLabel,transmissions,relations:relationList,signals,gods:Object.entries(GODS).map(([god,info])=>({god,...info,visible:visible.filter(a=>a.god===god),hidden:hidden.filter(a=>a.god===god)})),forecast,confidence:c.input.unknown?'时辰未知，结构信息不完整':c.warnings.some(w=>w.includes('节气交接'))?'临近交节，需确认出生分钟':'按所填出生信息计算',summary:[`日主${d}${c.dayElement}，${monthRelation}。`,`${roots.length}处同类根气；${supportLabel}。`,`${relationList.length}条已列干支关系，${signals.length}项组合线索。`]};
+    const eventsApi=typeof module==='object'&&module.exports?require('./events.js'):root.ZhiMingEvents;
+    const events=eventsApi.build(c,{...api,GODS,RELS},forecast,{visible,hidden,roots,signals});
+    c.detail.events=events;c.detail.version=events.version;
+    c.readings.overview.title=`${events.current.year}年，先看这几件具体事情`;
+    c.readings.overview.lead='先读事业、收入和关系各自的具体表现；完整命盘解释收在下面，按需展开。';
+    c.readings.career.title='事业好在哪里：岗位、项目还是实际回报';
+    c.readings.career.lead=`${events.current.year}年先看下面几件具体事。出现机会后，还要看相应条件是否成立。`;
+    c.readings.wealth.title='钱从哪里来：固定报酬、项目还是续单';
+    c.readings.wealth.lead='把收入的形式、兑现条件和可能的成本分开说清楚。';
+    c.readings.love.title='关系如何推进：接触、承诺与共同安排';
+    c.readings.love.lead='按你填写的关系阶段，解释这一年可具体关注的事情。';
+    for(const key of ['career','wealth','love'])c.readings[key].events=events.current[key];
+    c.readings.overview.events=[events.current.career[0],events.current.wealth[0],events.current.love[0]];
+    c.readings.years.events=events.years.flatMap(y=>[y.career[0],y.wealth[0],y.love[0]]);
+    c.detail.summary=[`事业（${events.current.career[0].basisScope}）：${events.current.career[0].title}。`,`收入（${events.current.wealth[0].basisScope}）：${events.current.wealth[0].title}。`,`关系：${events.current.love[0].title}。`];
     return c;
   }
   function buildForecast(c,api,options){
@@ -96,8 +111,8 @@
       const period=periodFor(`${year}-07-01`),contacts=[];
       for(const p of c.pillars.filter(p=>p.gz))for(const [kind,pairs]of Object.entries(RELS))if(pairs.some(v=>v===gz[1]+p.zhi||v===p.zhi+gz[1]))contacts.push(`${gz[1]}与本命${p.label}${p.zhi}${kind}`);
       if(period)for(const[kind,pairs]of Object.entries(RELS))if(pairs.some(v=>v===gz[1]+period.gz[1]||v===period.gz[1]+gz[1]))contacts.push(`${gz[1]}与大运${period.gz[1]}${kind}`);
-      const transitions=c.luck?.periods.filter(p=>p.startDate.startsWith(year+'-'))||[];
-      const text=`年干${gz[0]}相对日主${c.dayGan}为${god}，传统主题落在${info.group}：${info.meaning} 可借这一主题检查${info.strength}需要哪些现实条件，同时留意${info.risk} ${contacts.length?'具体关系：'+contacts.join('；')+'。':'年支与已知原局地支没有命中本表六合、冲、害、破。'} ${period?'7月1日所处大运'+period.gz+'，运干为'+shiShen(c.dayGan,period.gz[0])+'；这提供阶段背景，不与流年机械相加打分。':'此年未匹配到已列大运，按流年与原局单独展示。'} ${transitions.length?'本年有交运点 '+transitions.map(t=>t.startDate+'转入'+t.gz).join('、')+'，交运前后需分段阅读。':''} ${year<Number(c.original.slice(0,4))?'本年早于出生年份，仅作干支关系演示。':''}这些是传统关系变化的解释，不代表升职、失业、结婚或疾病必然发生。`;
+      const transitions=c.luck?.periods.filter(p=>p.startDate+' 00:00:00'>=jie.toYmdHms()&&p.startDate+' 00:00:00'<end.toYmdHms())||[];
+      const text=`年干${gz[0]}相对日主${c.dayGan}为${god}，传统主题落在${info.group}：${info.meaning} 可借这一主题检查${info.strength}需要哪些现实条件，同时留意${info.risk} ${contacts.length?'具体关系：'+contacts.join('；')+'。':'年支与已知原局地支没有命中本表六合、冲、害、破。'} ${period?'7月1日所处大运'+period.gz+'，运干为'+shiShen(c.dayGan,period.gz[0])+'；这提供阶段背景，不与流年机械相加打分。':'此年未匹配到已列大运，按流年与原局单独展示。'} ${transitions.length?'本年有交运点 '+transitions.map(t=>t.startDate+'转入'+t.gz).join('、')+'，交运前后需分段阅读。':''} ${end.toYmdHms()<=c.original?'本年早于出生年份，仅作干支关系演示。':''}这些是传统关系变化的解释，不代表升职、失业、结婚或疾病必然发生。`;
       items.push({year,gz,god,theme:info.group,period,start:jie.toYmdHms(),end:end.toYmdHms(),contacts,transitions,text});
     }
     const activeGz=Solar.fromYmdHms(...ref.split('-').map(Number),12,0,0).getLunar().getEightChar().getYear();
